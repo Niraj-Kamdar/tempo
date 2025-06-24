@@ -26,6 +26,7 @@ rand = "0.8.5"
 serde = { version = "1.0.219", features = ["derive"] }
 serde_json = "1.0.140"
 sha3 = "0.10"
+thiserror = "2.0"
 tokio = { version = "1.45.1", features = ["full"] }
 tracing = "0.1"
 
@@ -37,6 +38,7 @@ reth-cli-commands = { git = "https://github.com/paradigmxyz/reth", branch = "mai
 reth-cli-util = { git = "https://github.com/paradigmxyz/reth", branch = "main", package = "reth-cli-util" }
 reth-consensus = { git = "https://github.com/paradigmxyz/reth", branch = "main", package = "reth-consensus" }
 reth-db = { git = "https://github.com/paradigmxyz/reth", branch = "main", package = "reth-db" }
+reth-db-api = { git = "https://github.com/paradigmxyz/reth", branch = "main", package = "reth-db-api" }
 reth-engine-primitives = { git = "https://github.com/paradigmxyz/reth", branch = "main", package = "reth-engine-primitives" }
 reth-ethereum-engine-primitives = { git = "https://github.com/paradigmxyz/reth", branch = "main", package = "reth-ethereum-engine-primitives" }
 reth-ethereum-forks = { git = "https://github.com/paradigmxyz/reth", branch = "main", package = "reth-ethereum-forks" }
