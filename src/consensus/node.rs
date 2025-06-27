@@ -22,8 +22,6 @@ pub struct MalachiteNode {
     pub config: EngineConfig,
     /// Path to the home directory
     pub home_dir: PathBuf,
-    /// Path to the genesis file
-    pub genesis_file: PathBuf,
     /// Path to the private key file
     pub private_key_file: PathBuf,
     /// Application state
@@ -33,13 +31,11 @@ pub struct MalachiteNode {
 impl MalachiteNode {
     /// Create a new node implementation
     pub fn new(config: EngineConfig, home_dir: PathBuf, app_state: State) -> Self {
-        let genesis_file = home_dir.join("genesis.json");
-        let private_key_file = home_dir.join("priv_validator_key.json");
+        let private_key_file = home_dir.join("config").join("priv_validator_key.json");
 
         Self {
             config,
             home_dir,
-            genesis_file,
             private_key_file,
             app_state,
         }
