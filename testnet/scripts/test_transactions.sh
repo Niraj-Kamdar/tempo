@@ -52,7 +52,7 @@ wait_for_receipt() {
             return 1  # Timeout
         fi
         
-        local receipt=$(cast receipt --rpc-url "$rpc_url" "$tx_hash" --json 2>/dev/null || echo "")
+        local receipt=$(RUST_LOG= cast receipt --rpc-url "$rpc_url" "$tx_hash" --json 2>/dev/null || echo "")
         if [ -n "$receipt" ] && echo "$receipt" | jq -e '.blockNumber != null' >/dev/null 2>&1; then
             return 0  # Transaction mined
         fi
@@ -86,24 +86,34 @@ for i in $(seq 0 $((NUM_NODES - 1))); do
     
     log "Sending transaction to node $i (port $port) recipient: $to_address..."
     
-    # Send transaction using cast
-    tx_hash=$(cast send \
+    # Send transaction using cast (suppress debug output)
+    tx_output=$(RUST_LOG= cast send \
         --rpc-url "$rpc_url" \
         --private-key "$TEST_PRIVATE_KEY" \
         --value "${value_wei}wei" \
         "$to_address" \
-        --json 2>/dev/null | jq -r '.transactionHash' 2>/dev/null || echo "")
+        --json 2>&1)
     
-    if [ -n "$tx_hash" ] && [ "$tx_hash" != "null" ]; then
+    tx_hash=$(echo "$tx_output" | jq -r '.transactionHash' 2>/dev/null || echo "")
+    
+    if [ -n "$tx_hash" ] && [ "$tx_hash" != "null" ] && [ "$tx_hash" != "" ]; then
         TX_HASHES+=("$tx_hash")
         log "Transaction sent: $tx_hash"
     else
         error "Failed to send transaction to node $i"
         failed_count=$((failed_count + 1))
         
-        # Try to get more info about the failure
+        # Try to get error details
+        if echo "$tx_output" | jq -e '.error' >/dev/null 2>&1; then
+            error_msg=$(echo "$tx_output" | jq -r '.error' 2>/dev/null || echo "unknown error")
+            error "Error details: $error_msg"
+        elif [ -n "$tx_output" ]; then
+            error "Raw output: $tx_output"
+        fi
+        
+        # Check account balance
         log "Checking account balance..."
-        balance=$(cast balance --rpc-url "$rpc_url" "$TEST_ADDRESS" 2>/dev/null || echo "unknown")
+        balance=$(RUST_LOG= cast balance --rpc-url "$rpc_url" "$TEST_ADDRESS" 2>/dev/null || echo "unknown")
         log "Account balance: $balance"
     fi
     
@@ -120,7 +130,7 @@ if [ ${#TX_HASHES[@]} -eq 0 ]; then
     for i in $(seq 0 $((NUM_NODES - 1))); do
         port=$((8545 + i))
         rpc_url="http://127.0.0.1:$port"
-        balance=$(cast balance --rpc-url "$rpc_url" "$TEST_ADDRESS" 2>/dev/null || echo "error")
+        balance=$(RUST_LOG= cast balance --rpc-url "$rpc_url" "$TEST_ADDRESS" 2>/dev/null || echo "error")
         log "Node $i balance: $balance"
     done
     
@@ -158,14 +168,14 @@ for tx_hash in "${TX_HASHES[@]}"; do
         rpc_url="http://127.0.0.1:$port"
         
         # Get transaction using cast
-        tx_data=$(cast tx --rpc-url "$rpc_url" "$tx_hash" --json 2>/dev/null || echo "")
+        tx_data=$(RUST_LOG= cast tx --rpc-url "$rpc_url" "$tx_hash" --json 2>/dev/null || echo "")
         
         if [ -n "$tx_data" ] && echo "$tx_data" | jq -e '.hash' >/dev/null 2>&1; then
             log "  ✓ Transaction found on node $i"
             success_count=$((success_count + 1))
             
             # Also check receipt
-            receipt=$(cast receipt --rpc-url "$rpc_url" "$tx_hash" --json 2>/dev/null || echo "")
+            receipt=$(RUST_LOG= cast receipt --rpc-url "$rpc_url" "$tx_hash" --json 2>/dev/null || echo "")
             if [ -n "$receipt" ] && echo "$receipt" | jq -e '.blockNumber' >/dev/null 2>&1; then
                 block_num=$(echo "$receipt" | jq -r '.blockNumber')
                 log "  ✓ Receipt found on node $i (block $block_num)"
