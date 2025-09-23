@@ -13884,6 +13884,7 @@ dependencies = [
  "reth-primitives-traits",
  "reth-rpc-convert",
  "serde",
+ "tempo-precompiles",
  "test-fuzz",
 ]
 
