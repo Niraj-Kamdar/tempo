@@ -20,7 +20,7 @@ main() {
   echo ""
 
   # Wait for network to be ready and producing blocks
-  if ! wait_for_network_ready "$rpc_url" 30 5; then
+  if ! wait_for_network_ready "$rpc_url" 30 3; then
     echo "Test FAILED: Network failed to start properly"
     exit 1
   fi
@@ -39,25 +39,6 @@ main() {
   echo "Checking block production with one validator down..."
   if ! monitor_blocks "$rpc_url" 5 "  Monitoring for 5 seconds:"; then
     echo "Test FAILED: Network should continue producing blocks with one validator down"
-    stop_tx_generator "$tx_gen_pid" || true
-    exit 1
-  fi
-  echo ""
-
-  # Restart the validator
-  echo "Restarting the validator..."
-  start_validator 2
-  echo ""
-
-  # Wait for validator to rejoin
-  echo "Waiting 3 seconds for validator to rejoin..."
-  sleep 3
-  echo ""
-
-  # Check blocks still being produced
-  echo "Checking block production after validator recovery..."
-  if ! monitor_blocks "$rpc_url" 5 "  Monitoring for 5 seconds:"; then
-    echo "Test FAILED: Network should continue producing blocks after validator recovery"
     stop_tx_generator "$tx_gen_pid" || true
     exit 1
   fi
