@@ -134,3 +134,47 @@ The FeeManager extends FeeAMM and handles fee token preferences and distribution
 
 - **TEMPO-FEE5**: Collected fees should not exceed AMM token balance for any token.
 - **TEMPO-FEE6**: Fee swap rate M is correctly applied - fee output should always be <= fee input.
+
+## ValidatorConfig
+
+The ValidatorConfig precompile manages the set of validators that participate in consensus, including their public keys, addresses, and active status.
+
+### Owner Authorization Invariants
+
+- **TEMPO-VAL1**: Owner-only add - only the owner can add new validators (non-owners revert with `Unauthorized`).
+- **TEMPO-VAL7**: Owner transfer - `changeOwner` correctly updates the owner address.
+- **TEMPO-VAL8**: New owner authority - only the current owner can transfer ownership.
+
+### Validator Index Invariants
+
+- **TEMPO-VAL2**: Index assignment - new validators receive sequential indices starting from 0; indices are unique and within bounds.
+
+### Validator Update Invariants
+
+- **TEMPO-VAL3**: Validator self-update - validators can update their own public key, inbound address, and outbound address.
+- **TEMPO-VAL4**: Update restriction - only the validator themselves can call `updateValidator` (owner cannot update validators).
+
+### Status Management Invariants
+
+- **TEMPO-VAL5**: Owner-only status change - only the owner can change validator active status (validators cannot change their own status).
+- **TEMPO-VAL6**: Status toggle - `changeValidatorStatus` correctly updates the validator's active flag.
+
+### Validator Creation Invariants
+
+- **TEMPO-VAL9**: Duplicate rejection - adding a validator that already exists reverts with `ValidatorAlreadyExists`.
+- **TEMPO-VAL10**: Zero public key rejection - adding a validator with zero public key reverts with `InvalidPublicKey`.
+
+### Validator Rotation Invariants
+
+- **TEMPO-VAL11**: Address rotation - validators can rotate to a new address while preserving their index and active status.
+
+### DKG Ceremony Invariants
+
+- **TEMPO-VAL12**: DKG epoch setting - `setNextFullDkgCeremony` correctly stores the epoch value.
+- **TEMPO-VAL13**: Owner-only DKG - only the owner can set the DKG ceremony epoch.
+
+### Global Invariants
+
+- **TEMPO-VAL14**: Owner consistency - contract owner always matches ghost state.
+- **TEMPO-VAL15**: Validator data consistency - all validator data (active status, public key, index) matches ghost state.
+- **TEMPO-VAL16**: Index consistency - each validator's index matches the ghost-tracked index assigned at creation.
